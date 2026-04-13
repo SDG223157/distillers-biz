@@ -107,9 +107,21 @@ export default function DistillationPage({
   }
 
   return (
-    <div className="px-6 py-10">
-      <DistillView data={data} />
-      <ChatPanel slug={slug} title={data.title} type={data.type} />
+    <div className="flex h-[calc(100vh-3.5rem)]">
+      {/* Left: Distillation content (scrollable) */}
+      <div className="flex-1 overflow-y-auto px-6 py-10">
+        <DistillView data={data} />
+      </div>
+
+      {/* Right: Chat panel (fixed) */}
+      <div className="hidden w-[420px] shrink-0 border-l border-white/5 lg:block">
+        <ChatPanel slug={slug} title={data.title} type={data.type} mode="split" />
+      </div>
+
+      {/* Mobile: floating chat */}
+      <div className="lg:hidden">
+        <ChatPanel slug={slug} title={data.title} type={data.type} mode="float" />
+      </div>
     </div>
   );
 }

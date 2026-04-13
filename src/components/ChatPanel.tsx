@@ -12,17 +12,24 @@ export default function ChatPanel({
   slug,
   title,
   type,
+  mode = "float",
 }: {
   slug: string;
   title: string;
   type: DistillationType;
+  mode?: "split" | "float";
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(mode === "split");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isPerson = type === "person";
+  const placeholder = isPerson
+    ? `Ask ${title} anything...`
+    : `Ask about ${title}...`;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -87,7 +94,7 @@ export default function ChatPanel({
                 });
               }
             } catch {
-              /* skip malformed chunks */
+              /* skip */
             }
           }
         }
@@ -106,68 +113,24 @@ export default function ChatPanel({
     setStreaming(false);
   }
 
-  const isPerson = type === "person";
-  const placeholder = isPerson
-    ? `Ask ${title} anything...`
-    : `Ask about ${title}...`;
+  const starterQuestions = isPerson
+    ? [
+        `How would you approach AI regulation?`,
+        `What's your biggest mistake?`,
+        `How do you make decisions?`,
+      ]
+    : [
+        `Explain this simply`,
+        `What are the key takeaways?`,
+        `How does this apply today?`,
+      ];
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-amber-500/20 transition-all hover:scale-105 hover:shadow-xl hover:shadow-amber-500/30"
-      >
-        <svg
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
-          />
-        </svg>
-        {isPerson ? `Chat with ${title}` : `Ask about ${title}`}
-      </button>
-    );
-  }
-
-  return (
-    <div className="fixed bottom-0 right-0 z-50 flex h-[600px] w-full flex-col border-l border-t border-white/10 bg-zinc-950/95 backdrop-blur-xl sm:bottom-6 sm:right-6 sm:h-[550px] sm:w-[420px] sm:rounded-2xl sm:border">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-sm">
-            {isPerson ? "🧠" : "💬"}
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-white">
-              {isPerson ? title : `About ${title}`}
-            </div>
-            <div className="text-xs text-zinc-500">
-              {isPerson
-                ? "Thinking with their mental models"
-                : "Powered by distilled knowledge"}
-            </div>
-          </div>
-        </div>
-        <button
-          onClick={() => setOpen(false)}
-          className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
+  const chatContent = (
+    <>
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
-          <div className="flex h-full flex-col items-center justify-center text-center">
+          <div className="flex h-full flex-col items-center justify-center text-center px-2">
             <div className="mb-3 text-3xl">{isPerson ? "🧠" : "⚗️"}</div>
             <p className="text-sm text-zinc-400">
               {isPerson
@@ -175,18 +138,7 @@ export default function ChatPanel({
                 : `Ask me anything about ${title}. I'll answer from the distilled knowledge.`}
             </p>
             <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-              {(isPerson
-                ? [
-                    `How would you approach AI regulation?`,
-                    `What's your biggest mistake?`,
-                    `How do you make decisions?`,
-                  ]
-                : [
-                    `Explain this simply`,
-                    `What are the key takeaways?`,
-                    `How does this apply today?`,
-                  ]
-              ).map((q) => (
+              {starterQuestions.map((q) => (
                 <button
                   key={q}
                   onClick={() => {
@@ -246,6 +198,74 @@ export default function ChatPanel({
           </button>
         </div>
       </form>
+    </>
+  );
+
+  // Split mode: always-visible side panel
+  if (mode === "split") {
+    return (
+      <div className="flex h-full flex-col bg-zinc-950">
+        {/* Header */}
+        <div className="flex items-center gap-2 border-b border-white/5 px-4 py-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-sm">
+            {isPerson ? "🧠" : "💬"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-white">
+              {isPerson ? title : `About ${title}`}
+            </div>
+            <div className="text-xs text-zinc-500">
+              {isPerson ? "Using their mental models" : "Distilled knowledge"}
+            </div>
+          </div>
+        </div>
+        {chatContent}
+      </div>
+    );
+  }
+
+  // Float mode: bottom-right popup (mobile)
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
+        </svg>
+        Chat
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-zinc-950/95 backdrop-blur-xl">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-sm">
+            {isPerson ? "🧠" : "💬"}
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-white">
+              {isPerson ? title : `About ${title}`}
+            </div>
+            <div className="text-xs text-zinc-500">
+              {isPerson ? "Using their mental models" : "Distilled knowledge"}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={() => setOpen(false)}
+          className="rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      {chatContent}
     </div>
   );
 }
