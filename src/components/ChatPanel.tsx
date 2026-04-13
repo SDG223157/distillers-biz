@@ -33,6 +33,24 @@ export default function ChatPanel({
     : `Ask about ${title}...`;
 
   useEffect(() => {
+    async function loadHistory() {
+      try {
+        const res = await fetch(`/api/chat?slug=${slug}`);
+        if (res.ok) {
+          const history = await res.json();
+          if (history.length > 0) {
+            setMessages(history.map((m: { role: string; content: string }) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            })));
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    loadHistory();
+  }, [slug]);
+
+  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }

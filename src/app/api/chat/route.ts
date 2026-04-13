@@ -90,6 +90,34 @@ RULES:
 - For philosophy: present multiple perspectives when relevant`;
 }
 
+export async function GET(req: NextRequest) {
+  try {
+    const slug = new URL(req.url).searchParams.get("slug");
+    if (!slug) {
+      return new Response(JSON.stringify({ error: "slug required" }), {
+        status: 400, headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const sql = neon(process.env.DATABASE_URL!);
+    const rows = await sql`
+      SELECT role, content FROM chat_messages
+      WHERE distillation_slug = ${slug}
+      ORDER BY created_at ASC
+      LIMIT 100
+    `;
+
+    return new Response(JSON.stringify(rows), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("Chat GET error:", e);
+    return new Response(JSON.stringify([]), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { slug, messages } = await req.json() as {
@@ -113,6 +141,14 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const lastUserMsg = messages[messages.length - 1];
+    if (lastUserMsg?.role === "user") {
+      await sql`
+        INSERT INTO chat_messages (distillation_slug, role, content)
+        VALUES (${slug}, 'user', ${lastUserMsg.content})
+      `;
+    }
+
     const distillation = rows[0] as unknown as Distillation;
     const systemPrompt = buildSystemPrompt(distillation);
 
@@ -129,17 +165,26 @@ export async function POST(req: NextRequest) {
       stream: true,
     });
 
+    let fullResponse = "";
     const encoder = new TextEncoder();
     const readable = new ReadableStream({
       async start(controller) {
         for await (const chunk of stream) {
           const text = chunk.choices[0]?.delta?.content;
           if (text) {
+            fullResponse += text;
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
           }
         }
         controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         controller.close();
+
+        if (fullResponse) {
+          sql`
+            INSERT INTO chat_messages (distillation_slug, role, content)
+            VALUES (${slug}, 'assistant', ${fullResponse})
+          `.catch(console.error);
+        }
       },
     });
 
