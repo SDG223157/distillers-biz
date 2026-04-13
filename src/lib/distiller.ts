@@ -300,6 +300,61 @@ const KNOWN_PERSONS = [
   "oprah", "obama", "trump", "biden",
 ];
 
+export async function smartClassifyType(topic: string): Promise<DistillationType> {
+  const hasNonAscii = /[^\x00-\x7F]/.test(topic);
+  const heuristicResult = classifyType(topic);
+
+  if (!hasNonAscii && heuristicResult !== "concept") {
+    return heuristicResult;
+  }
+
+  try {
+    const openai = getOpenAI();
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: `Classify this topic into exactly ONE type. Reply with ONLY the type word, nothing else.
+
+Types:
+- person (a real human being — historical, living, famous, or obscure)
+- concept (an idea, framework, mental model, theory)
+- formula (equation, theorem, mathematical law)
+- event (a specific historical event, crisis, battle)
+- history (an era, period, civilization, movement)
+- philosophy (school of thought, worldview, doctrine)
+- book (a specific book or publication)
+- company (a business, corporation, startup)
+- technology (a technology, tool, engineering method)
+- skill (a learnable ability, craft, technique)
+- debate (a controversial topic with two sides)
+- question (a deep or open-ended question)
+
+Topic: "${topic}"
+
+Type:`,
+        },
+      ],
+      max_tokens: 10,
+      temperature: 0,
+    });
+
+    const result = response.choices[0]?.message?.content?.trim().toLowerCase() || "";
+    const validTypes: DistillationType[] = [
+      "concept", "formula", "event", "history", "philosophy", "person",
+      "book", "company", "technology", "skill", "debate", "question",
+    ];
+    if (validTypes.includes(result as DistillationType)) {
+      return result as DistillationType;
+    }
+  } catch {
+    // fallback to heuristic
+  }
+
+  return heuristicResult;
+}
+
 export function classifyType(topic: string): DistillationType {
   const lower = topic.toLowerCase().trim();
 

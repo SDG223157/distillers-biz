@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { research } from "@/lib/serpapi";
-import { distill, classifyType, slugify } from "@/lib/distiller";
+import { distill, smartClassifyType, slugify } from "@/lib/distiller";
 import type { DistillationType } from "@/lib/types";
 
 function getDb() {
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Topic is required" }, { status: 400 });
     }
 
-    const type = requestedType || classifyType(topic);
+    const type = requestedType || await smartClassifyType(topic);
     const slug = slugify(topic) || `distill-${Date.now()}`;
     const sql = getDb();
 
