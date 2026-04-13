@@ -20,6 +20,7 @@ export default async function Header() {
           <nav className="flex items-center gap-1">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/gallery">Gallery</NavLink>
+            <NavLink href="/chat">Mixed Chat</NavLink>
           </nav>
 
           {session?.user && (
