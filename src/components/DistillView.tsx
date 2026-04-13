@@ -1,5 +1,16 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import TypeBadge from "./TypeBadge";
 import type { Distillation } from "@/lib/types";
+
+interface Version {
+  id: number;
+  version: number;
+  subtitle: string | null;
+  essence: string | null;
+  created_at: string;
+}
 
 function exportMarkdown(data: Distillation) {
   const c = data.content;
@@ -73,6 +84,18 @@ export default function DistillView({
   onRefresh?: () => void;
 }) {
   const content = data.content;
+  const [versions, setVersions] = useState<Version[]>([]);
+  const [showVersions, setShowVersions] = useState(false);
+
+  useEffect(() => {
+    if (data.slug) {
+      fetch(`/api/versions?slug=${data.slug}`)
+        .then((r) => r.json())
+        .then((v) => { if (Array.isArray(v)) setVersions(v); })
+        .catch(() => {});
+    }
+  }, [data.slug]);
+
   if (!content) return null;
 
   return (
@@ -89,22 +112,69 @@ export default function DistillView({
               <p className="mt-2 text-lg text-zinc-400">{data.subtitle}</p>
             )}
           </div>
-          <div className="flex shrink-0 gap-2 pt-1">
-            <button
-              onClick={() => exportMarkdown(data)}
-              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
-              title="Export as Markdown"
-            >
-              ↓ Export
-            </button>
-            {onRefresh && (
+          <div className="flex shrink-0 flex-col items-end gap-2 pt-1">
+            <div className="flex gap-2">
               <button
-                onClick={onRefresh}
-                className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-400 transition-colors hover:bg-amber-500/10"
-                title="Re-distill with latest research"
+                onClick={() => exportMarkdown(data)}
+                className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
+                title="Export as Markdown"
               >
-                ↻ Re-distill
+                ↓ Export
               </button>
+              {onRefresh && (
+                <button
+                  onClick={onRefresh}
+                  className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-400 transition-colors hover:bg-amber-500/10"
+                  title="Re-distill with latest research"
+                >
+                  ↻ Re-distill
+                </button>
+              )}
+            </div>
+            {versions.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowVersions(!showVersions)}
+                  className="text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors"
+                >
+                  {versions.length} previous version{versions.length !== 1 ? "s" : ""} ▾
+                </button>
+                {showVersions && (
+                  <div className="absolute right-0 top-full z-50 mt-1 w-72 overflow-hidden rounded-lg border border-white/10 bg-zinc-900/95 shadow-xl backdrop-blur-xl">
+                    <div className="px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-zinc-500 border-b border-white/5">
+                      Version History
+                    </div>
+                    <div className="divide-y divide-white/5">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/5">
+                        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-400">
+                          Current
+                        </span>
+                        <span className="text-xs text-zinc-300 truncate flex-1">
+                          {data.subtitle || data.essence?.slice(0, 40)}
+                        </span>
+                      </div>
+                      {versions.map((v) => (
+                        <div key={v.id} className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500">
+                              v{v.version}
+                            </span>
+                            <span className="text-xs text-zinc-400 truncate flex-1">
+                              {v.subtitle || v.essence?.slice(0, 40) || "—"}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-zinc-600">
+                            {new Date(v.created_at).toLocaleDateString("en-US", {
+                              month: "short", day: "numeric", year: "numeric",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>

@@ -41,6 +41,14 @@ export async function POST(req: NextRequest) {
 
     if (existing.length > 0 && refresh) {
       await sql`
+        INSERT INTO distillation_versions (distillation_slug, version, title, type, subtitle, essence, content, sources, research_queries)
+        SELECT slug,
+          COALESCE((SELECT MAX(version) FROM distillation_versions WHERE distillation_slug = ${slug}), 0) + 1,
+          title, type, subtitle, essence, content, sources, research_queries
+        FROM distillations WHERE slug = ${slug}
+      `;
+
+      await sql`
         UPDATE distillations
         SET status = 'researching', type = ${type}, updated_at = NOW()
         WHERE slug = ${slug}
