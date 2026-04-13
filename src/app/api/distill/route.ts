@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 import { research } from "@/lib/serpapi";
-import { distill, smartClassifyType, slugify } from "@/lib/distiller";
+import { distill, smartClassifyType, smartSlugify } from "@/lib/distiller";
 import type { DistillationType } from "@/lib/types";
 
 function getDb() {
@@ -11,28 +11,42 @@ function getDb() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { topic, type: requestedType } = body as {
+    const { topic, type: requestedType, refresh } = body as {
       topic: string;
       type?: DistillationType;
+      refresh?: boolean;
     };
 
     if (!topic?.trim()) {
       return NextResponse.json({ error: "Topic is required" }, { status: 400 });
     }
 
-    const type = requestedType || await smartClassifyType(topic);
-    const slug = slugify(topic) || `distill-${Date.now()}`;
+    const [type, slug] = await Promise.all([
+      requestedType ? Promise.resolve(requestedType) : smartClassifyType(topic),
+      smartSlugify(topic),
+    ]);
     const sql = getDb();
 
     const existing = await sql`
-      SELECT id, slug, status FROM distillations WHERE slug = ${slug}
+      SELECT id, slug, status, type FROM distillations WHERE slug = ${slug}
     `;
-    if (existing.length > 0) {
+
+    if (existing.length > 0 && !refresh) {
       return NextResponse.json({
         slug: existing[0].slug,
         status: existing[0].status,
         message: "Already exists",
       });
+    }
+
+    if (existing.length > 0 && refresh) {
+      await sql`
+        UPDATE distillations
+        SET status = 'researching', type = ${type}, updated_at = NOW()
+        WHERE slug = ${slug}
+      `;
+      processDistillation(slug, topic.trim(), type).catch(console.error);
+      return NextResponse.json({ slug, type, status: "researching", message: "Re-distilling" });
     }
 
     await sql`

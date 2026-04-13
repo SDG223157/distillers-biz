@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, use } from "react";
 import DistillView from "@/components/DistillView";
 import ChatPanel from "@/components/ChatPanel";
 import type { Distillation } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 export default function DistillationPage({
   params,
@@ -13,6 +14,19 @@ export default function DistillationPage({
   const { slug } = use(params);
   const [data, setData] = useState<Distillation | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function handleRefresh() {
+    if (!data) return;
+    const res = await fetch("/api/distill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic: data.title, type: data.type, refresh: true }),
+    });
+    if (res.ok) {
+      setData((prev) => prev ? { ...prev, status: "researching" as const } : null);
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -110,7 +124,7 @@ export default function DistillationPage({
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Left: Distillation content (scrollable) */}
       <div className="w-1/2 overflow-y-auto px-6 py-10 max-lg:w-full">
-        <DistillView data={data} />
+        <DistillView data={data} onRefresh={handleRefresh} />
       </div>
 
       {/* Right: Chat panel (same width) */}

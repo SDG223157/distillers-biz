@@ -1,7 +1,77 @@
 import TypeBadge from "./TypeBadge";
 import type { Distillation } from "@/lib/types";
 
-export default function DistillView({ data }: { data: Distillation }) {
+function exportMarkdown(data: Distillation) {
+  const c = data.content;
+  if (!c) return;
+
+  let md = `# ${data.title}\n\n`;
+  if (data.subtitle) md += `*${data.subtitle}*\n\n`;
+  md += `**Type:** ${data.type}\n\n---\n\n`;
+  md += `## Essence\n\n${c.essence}\n\n`;
+  if (c.origin_story) md += `## Origin Story\n\n${c.origin_story}\n\n`;
+  if (c.mental_models?.length) {
+    md += `## Mental Models\n\n`;
+    for (const m of c.mental_models) {
+      md += `### ${m.name}\n${m.one_line}\n\n`;
+      if (m.evidence?.length) md += `Evidence:\n${m.evidence.map((e) => `- ${e}`).join("\n")}\n\n`;
+      md += `**Apply:** ${m.application}\n**Limitation:** ${m.limitation}\n\n`;
+    }
+  }
+  if (c.decision_heuristics?.length) {
+    md += `## Decision Heuristics\n\n`;
+    for (const h of c.decision_heuristics) md += `- **${h.rule}:** ${h.description} *(${h.example})*\n`;
+    md += "\n";
+  }
+  if (c.expression_dna) {
+    const d = c.expression_dna;
+    md += `## Expression DNA\n\n- Style: ${d.sentence_style}\n- Vocabulary: ${d.vocabulary}\n- Rhythm: ${d.rhythm}\n- Humor: ${d.humor}\n- Certainty: ${d.certainty}\n- Catchphrases: ${d.catchphrases?.join(", ") || "none"}\n\n`;
+  }
+  if (c.key_principles?.length) {
+    md += `## Key Principles\n\n`;
+    for (const p of c.key_principles) md += `### ${p.name}\n${p.description}\n\n*Example: ${p.example}*\n\n`;
+  }
+  if (c.timeline?.length) {
+    md += `## Timeline\n\n`;
+    for (const t of c.timeline) md += `- **${t.date}:** ${t.event} — ${t.significance}\n`;
+    md += "\n";
+  }
+  if (c.applications?.length) {
+    md += `## Applications\n\n`;
+    for (const a of c.applications) md += `- **${a.domain}:** ${a.description}\n`;
+    md += "\n";
+  }
+  if (c.limitations?.length) md += `## Limitations\n\n${c.limitations.map((l) => `- ${l}`).join("\n")}\n\n`;
+  if (c.quotes?.length) {
+    md += `## Quotes\n\n`;
+    for (const q of c.quotes) md += `> "${q.text}" — ${q.attribution}\n\n`;
+  }
+  if (c.connections?.length) {
+    md += `## Connections\n\n`;
+    for (const cn of c.connections) md += `- **${cn.title}:** ${cn.relation}\n`;
+    md += "\n";
+  }
+  if (data.sources?.length) {
+    md += `## Sources\n\n`;
+    for (const s of data.sources.slice(0, 20)) md += `- [${s.title}](${s.url})\n`;
+  }
+
+  const blob = new Blob([md], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${data.slug}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export default function DistillView({
+  data,
+  onRefresh,
+}: {
+  data: Distillation;
+  onRefresh?: () => void;
+}) {
   const content = data.content;
   if (!content) return null;
 
@@ -9,13 +79,35 @@ export default function DistillView({ data }: { data: Distillation }) {
     <article className="mx-auto max-w-3xl">
       {/* Header */}
       <header className="mb-10 border-b border-white/5 pb-8">
-        <TypeBadge type={data.type} size="lg" />
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          {data.title}
-        </h1>
-        {data.subtitle && (
-          <p className="mt-2 text-lg text-zinc-400">{data.subtitle}</p>
-        )}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <TypeBadge type={data.type} size="lg" />
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              {data.title}
+            </h1>
+            {data.subtitle && (
+              <p className="mt-2 text-lg text-zinc-400">{data.subtitle}</p>
+            )}
+          </div>
+          <div className="flex shrink-0 gap-2 pt-1">
+            <button
+              onClick={() => exportMarkdown(data)}
+              className="rounded-lg border border-white/10 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:border-white/20 hover:text-white"
+              title="Export as Markdown"
+            >
+              ↓ Export
+            </button>
+            {onRefresh && (
+              <button
+                onClick={onRefresh}
+                className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-xs text-amber-400 transition-colors hover:bg-amber-500/10"
+                title="Re-distill with latest research"
+              >
+                ↻ Re-distill
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
       {/* Essence */}

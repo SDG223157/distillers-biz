@@ -259,6 +259,26 @@ async function tavilySearch(query: string): Promise<SerpResult[]> {
   }
 }
 
+async function tavilyExtract(url: string): Promise<string> {
+  const apiKey = process.env.TAVILY_API_KEY;
+  if (!apiKey) return "";
+
+  try {
+    const res = await fetch("https://api.tavily.com/extract", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_key: apiKey, urls: [url] }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) return "";
+    const data = await res.json();
+    const content = data.results?.[0]?.raw_content || data.results?.[0]?.text || "";
+    return content.slice(0, 3000);
+  } catch {
+    return "";
+  }
+}
+
 export async function research(
   topic: string,
   type: DistillationType
@@ -304,12 +324,34 @@ export async function research(
   const capped = allSources.slice(0, sourceCap);
   const queries = [...serpQueries, ...tavilyQueries];
 
-  const researchText = capped
+  const topUrls = capped
+    .filter((s) => s.url && s.url.startsWith("http"))
+    .slice(0, 5)
+    .map((s) => s.url);
+
+  const fullTexts = await Promise.allSettled(
+    topUrls.map((url) => tavilyExtract(url))
+  );
+
+  const deepContent: string[] = [];
+  fullTexts.forEach((result, i) => {
+    if (result.status === "fulfilled" && result.value.length > 200) {
+      deepContent.push(
+        `[DEEP SOURCE ${i + 1}] ${topUrls[i]}\n${result.value}`
+      );
+    }
+  });
+
+  const snippetText = capped
     .map(
       (s, i) =>
         `[Source ${i + 1}] ${s.title}\n${s.url ? `URL: ${s.url}\n` : ""}${s.snippet}\n`
     )
     .join("\n---\n");
+
+  const researchText = deepContent.length > 0
+    ? `=== FULL-TEXT EXTRACTS (read these carefully) ===\n\n${deepContent.join("\n\n---\n\n")}\n\n=== ADDITIONAL SNIPPETS ===\n\n${snippetText}`
+    : snippetText;
 
   return {
     sources: capped,

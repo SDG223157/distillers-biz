@@ -480,11 +480,45 @@ export function classifyType(topic: string): DistillationType {
 }
 
 export function slugify(text: string): string {
-  return text
+  const s = text
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
     .slice(0, 80)
     .replace(/^-|-$/g, "");
+  return s || `distill-${Date.now()}`;
+}
+
+export async function smartSlugify(text: string): Promise<string> {
+  const basic = text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80)
+    .replace(/^-|-$/g, "");
+
+  if (basic.length >= 3) return basic;
+
+  try {
+    const openai = getOpenAI();
+    const res = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `Convert this to a URL-friendly English slug (lowercase, hyphens, no special chars, max 40 chars). Just output the slug, nothing else.\n\nInput: "${text}"`,
+      }],
+      max_tokens: 30,
+      temperature: 0,
+    });
+    const slug = (res.choices[0]?.message?.content || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "")
+      .slice(0, 60);
+    if (slug.length >= 3) return slug;
+  } catch { /* fallback */ }
+
+  return `distill-${Date.now()}`;
 }
