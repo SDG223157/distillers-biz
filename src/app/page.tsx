@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TYPE_META, type DistillationType } from "@/lib/types";
 
 const SUGGESTIONS: { text: string; type: DistillationType }[] = [
+  // Concepts
   { text: "Second Law of Thermodynamics", type: "concept" },
   { text: "Network Effects", type: "concept" },
   { text: "Compound Interest", type: "concept" },
@@ -15,6 +16,17 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Cognitive Dissonance", type: "concept" },
   { text: "Pareto Principle", type: "concept" },
   { text: "Dunning-Kruger Effect", type: "concept" },
+  { text: "Game Theory", type: "concept" },
+  { text: "Moral Hazard", type: "concept" },
+  { text: "Survivorship Bias", type: "concept" },
+  { text: "Tragedy of the Commons", type: "concept" },
+  { text: "Creative Destruction", type: "concept" },
+  { text: "Antifragility", type: "concept" },
+  { text: "Comparative Advantage", type: "concept" },
+  { text: "Prisoner's Dilemma", type: "concept" },
+  { text: "Principal-Agent Problem", type: "concept" },
+  { text: "Occam's Razor", type: "concept" },
+  // Formulas
   { text: "Black-Scholes Formula", type: "formula" },
   { text: "E = mc²", type: "formula" },
   { text: "Bayes' Theorem", type: "formula" },
@@ -23,6 +35,9 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Schrödinger Equation", type: "formula" },
   { text: "Drake Equation", type: "formula" },
   { text: "Navier-Stokes Equations", type: "formula" },
+  { text: "Shannon Entropy Formula", type: "formula" },
+  { text: "Fourier Transform", type: "formula" },
+  // Events
   { text: "2008 Financial Crisis", type: "event" },
   { text: "Fall of the Berlin Wall", type: "event" },
   { text: "Moon Landing 1969", type: "event" },
@@ -30,6 +45,10 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Chernobyl Disaster", type: "event" },
   { text: "Black Monday 1987", type: "event" },
   { text: "Bretton Woods Agreement", type: "event" },
+  { text: "French Revolution", type: "event" },
+  { text: "Assassination of Julius Caesar", type: "event" },
+  { text: "Hiroshima Atomic Bombing", type: "event" },
+  // History
   { text: "Rise and Fall of the Roman Empire", type: "history" },
   { text: "Industrial Revolution", type: "history" },
   { text: "Age of Enlightenment", type: "history" },
@@ -37,6 +56,10 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Renaissance", type: "history" },
   { text: "Cold War", type: "history" },
   { text: "Scientific Revolution", type: "history" },
+  { text: "Ancient Greek Civilization", type: "history" },
+  { text: "History of the Internet", type: "history" },
+  { text: "Age of Exploration", type: "history" },
+  // Philosophy
   { text: "Stoicism", type: "philosophy" },
   { text: "Existentialism", type: "philosophy" },
   { text: "Utilitarianism", type: "philosophy" },
@@ -45,6 +68,9 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Empiricism", type: "philosophy" },
   { text: "Absurdism", type: "philosophy" },
   { text: "Effective Altruism", type: "philosophy" },
+  { text: "Taoism", type: "philosophy" },
+  { text: "Rationalism", type: "philosophy" },
+  // Persons — large list for broad coverage
   { text: "Elon Musk", type: "person" },
   { text: "Steve Jobs", type: "person" },
   { text: "Charlie Munger", type: "person" },
@@ -59,6 +85,91 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Peter Thiel", type: "person" },
   { text: "Andrej Karpathy", type: "person" },
   { text: "Jensen Huang", type: "person" },
+  { text: "Mark Twain", type: "person" },
+  { text: "Albert Einstein", type: "person" },
+  { text: "Leonardo da Vinci", type: "person" },
+  { text: "Nikola Tesla", type: "person" },
+  { text: "Isaac Newton", type: "person" },
+  { text: "Charles Darwin", type: "person" },
+  { text: "Marie Curie", type: "person" },
+  { text: "Alan Turing", type: "person" },
+  { text: "Ada Lovelace", type: "person" },
+  { text: "Aristotle", type: "person" },
+  { text: "Plato", type: "person" },
+  { text: "Socrates", type: "person" },
+  { text: "Confucius", type: "person" },
+  { text: "Sun Tzu", type: "person" },
+  { text: "Machiavelli", type: "person" },
+  { text: "Napoleon Bonaparte", type: "person" },
+  { text: "Alexander the Great", type: "person" },
+  { text: "Julius Caesar", type: "person" },
+  { text: "Mahatma Gandhi", type: "person" },
+  { text: "Martin Luther King Jr.", type: "person" },
+  { text: "Nelson Mandela", type: "person" },
+  { text: "Winston Churchill", type: "person" },
+  { text: "Abraham Lincoln", type: "person" },
+  { text: "Benjamin Franklin", type: "person" },
+  { text: "Thomas Jefferson", type: "person" },
+  { text: "Theodore Roosevelt", type: "person" },
+  { text: "Karl Marx", type: "person" },
+  { text: "Adam Smith", type: "person" },
+  { text: "John Maynard Keynes", type: "person" },
+  { text: "Friedrich Hayek", type: "person" },
+  { text: "Milton Friedman", type: "person" },
+  { text: "Nietzsche", type: "person" },
+  { text: "Immanuel Kant", type: "person" },
+  { text: "Marcus Aurelius", type: "person" },
+  { text: "Seneca", type: "person" },
+  { text: "Epictetus", type: "person" },
+  { text: "Shakespeare", type: "person" },
+  { text: "Ernest Hemingway", type: "person" },
+  { text: "George Orwell", type: "person" },
+  { text: "Fyodor Dostoevsky", type: "person" },
+  { text: "Leo Tolstoy", type: "person" },
+  { text: "Carl Jung", type: "person" },
+  { text: "Sigmund Freud", type: "person" },
+  { text: "Bill Gates", type: "person" },
+  { text: "Mark Zuckerberg", type: "person" },
+  { text: "Satya Nadella", type: "person" },
+  { text: "Tim Cook", type: "person" },
+  { text: "Larry Page", type: "person" },
+  { text: "Sergey Brin", type: "person" },
+  { text: "Jack Ma", type: "person" },
+  { text: "Ren Zhengfei", type: "person" },
+  { text: "Zhang Yiming", type: "person" },
+  { text: "Andy Grove", type: "person" },
+  { text: "Reed Hastings", type: "person" },
+  { text: "Bob Iger", type: "person" },
+  { text: "Ilya Sutskever", type: "person" },
+  { text: "Geoffrey Hinton", type: "person" },
+  { text: "Yann LeCun", type: "person" },
+  { text: "Demis Hassabis", type: "person" },
+  { text: "Linus Torvalds", type: "person" },
+  { text: "Donald Knuth", type: "person" },
+  { text: "Claude Shannon", type: "person" },
+  { text: "John von Neumann", type: "person" },
+  { text: "MrBeast", type: "person" },
+  { text: "Joe Rogan", type: "person" },
+  { text: "Lex Fridman", type: "person" },
+  { text: "Oprah Winfrey", type: "person" },
+  { text: "Deng Xiaoping", type: "person" },
+  { text: "Lee Kuan Yew", type: "person" },
+  { text: "Genghis Khan", type: "person" },
+  { text: "Cleopatra", type: "person" },
+  { text: "Mozart", type: "person" },
+  { text: "Beethoven", type: "person" },
+  { text: "Picasso", type: "person" },
+  { text: "Michelangelo", type: "person" },
+  { text: "Galileo Galilei", type: "person" },
+  { text: "Stephen Hawking", type: "person" },
+  { text: "Carl Sagan", type: "person" },
+  { text: "Nikola Tesla", type: "person" },
+  { text: "George Soros", type: "person" },
+  { text: "Carl Icahn", type: "person" },
+  { text: "Benjamin Graham", type: "person" },
+  { text: "Philip Fisher", type: "person" },
+  { text: "Howard Marks", type: "person" },
+  { text: "Aswath Damodaran", type: "person" },
 ];
 
 const EXAMPLES = SUGGESTIONS.slice(0, 5);
@@ -73,11 +184,20 @@ export default function Home() {
   const hintRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const filtered = topic.trim().length > 0
+  const trimmed = topic.trim();
+  const staticMatches = trimmed.length > 0
     ? SUGGESTIONS.filter((s) =>
-        s.text.toLowerCase().includes(topic.toLowerCase())
-      ).slice(0, 8)
+        s.text.toLowerCase().includes(trimmed.toLowerCase())
+      ).slice(0, 7)
     : [];
+
+  const hasExactMatch = staticMatches.some(
+    (s) => s.text.toLowerCase() === trimmed.toLowerCase()
+  );
+
+  const filtered = trimmed.length > 0 && !hasExactMatch
+    ? [...staticMatches, { text: trimmed, type: "auto" as const }]
+    : staticMatches;
 
   const handleClickOutside = useCallback((e: MouseEvent) => {
     if (
@@ -116,9 +236,11 @@ export default function Home() {
     }
   }
 
-  function selectHint(s: { text: string; type: DistillationType }) {
+  function selectHint(s: { text: string; type: string }) {
     setTopic(s.text);
-    setSelectedType(s.type);
+    if (s.type !== "auto") {
+      setSelectedType(s.type as DistillationType);
+    }
     setShowHints(false);
     setActiveIdx(-1);
     inputRef.current?.focus();
@@ -135,7 +257,13 @@ export default function Home() {
       setActiveIdx((prev) => (prev <= 0 ? filtered.length - 1 : prev - 1));
     } else if (e.key === "Enter" && activeIdx >= 0) {
       e.preventDefault();
-      selectHint(filtered[activeIdx]);
+      const item = filtered[activeIdx];
+      if (item.type === "auto") {
+        setShowHints(false);
+        handleDistill();
+      } else {
+        selectHint(item);
+      }
     } else if (e.key === "Escape") {
       setShowHints(false);
       setActiveIdx(-1);
@@ -210,10 +338,44 @@ export default function Home() {
                 className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-white/10 bg-zinc-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
               >
                 {filtered.map((s, i) => {
-                  const matchStart = s.text.toLowerCase().indexOf(topic.toLowerCase());
-                  const before = s.text.slice(0, matchStart);
-                  const match = s.text.slice(matchStart, matchStart + topic.length);
-                  const after = s.text.slice(matchStart + topic.length);
+                  const isAuto = s.type === ("auto" as string);
+                  const matchStart = s.text.toLowerCase().indexOf(trimmed.toLowerCase());
+                  const before = matchStart >= 0 ? s.text.slice(0, matchStart) : "";
+                  const match = matchStart >= 0 ? s.text.slice(matchStart, matchStart + trimmed.length) : "";
+                  const after = matchStart >= 0 ? s.text.slice(matchStart + trimmed.length) : s.text;
+
+                  if (isAuto) {
+                    return (
+                      <button
+                        key="__auto__"
+                        type="button"
+                        onClick={() => {
+                          setTopic(s.text);
+                          setShowHints(false);
+                          setActiveIdx(-1);
+                          handleDistill();
+                        }}
+                        onMouseEnter={() => setActiveIdx(i)}
+                        className={`flex w-full items-center gap-3 border-t border-white/5 px-4 py-2.5 text-left text-sm transition-colors ${
+                          i === activeIdx
+                            ? "bg-amber-500/10 text-white"
+                            : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-amber-500/20 text-xs text-amber-400">
+                          ⚗️
+                        </span>
+                        <span>
+                          Distill &ldquo;<span className="font-semibold text-white">{s.text}</span>&rdquo;
+                        </span>
+                        <span className="ml-auto text-xs text-amber-500">
+                          Enter ↵
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const meta = TYPE_META[s.type as DistillationType];
 
                   return (
                     <button
@@ -228,7 +390,7 @@ export default function Home() {
                       }`}
                     >
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-800 text-xs">
-                        {TYPE_META[s.type].icon}
+                        {meta.icon}
                       </span>
                       <span>
                         {matchStart >= 0 ? (
@@ -244,7 +406,7 @@ export default function Home() {
                         )}
                       </span>
                       <span className="ml-auto text-xs text-zinc-600">
-                        {TYPE_META[s.type].label}
+                        {meta.label}
                       </span>
                     </button>
                   );
