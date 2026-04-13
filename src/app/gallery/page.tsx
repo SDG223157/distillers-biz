@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import TypeBadge from "@/components/TypeBadge";
 import { TYPE_META, type DistillationType } from "@/lib/types";
 
@@ -20,6 +21,11 @@ export default function GalleryPage() {
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function load() {
@@ -47,6 +53,46 @@ export default function GalleryPage() {
       )
     : items;
 
+  const suggestions = search.trim().length > 0
+    ? items
+        .filter((item) =>
+          item.title.toLowerCase().includes(search.toLowerCase()) ||
+          item.subtitle?.toLowerCase().includes(search.toLowerCase())
+        )
+        .slice(0, 6)
+    : [];
+
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (
+      dropRef.current && !dropRef.current.contains(e.target as Node) &&
+      searchRef.current && !searchRef.current.contains(e.target as Node)
+    ) {
+      setShowSuggestions(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [handleClickOutside]);
+
+  function handleSearchKeyDown(e: React.KeyboardEvent) {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((p) => (p + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((p) => (p <= 0 ? suggestions.length - 1 : p - 1));
+    } else if (e.key === "Enter" && activeIdx >= 0) {
+      e.preventDefault();
+      const item = suggestions[activeIdx];
+      if (item.status === "complete") router.push(`/d/${item.slug}`);
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -57,8 +103,8 @@ export default function GalleryPage() {
           </p>
         </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
+        {/* Search with suggestions */}
+        <div className="relative w-full sm:w-80">
           <svg
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500"
             fill="none"
@@ -73,21 +119,87 @@ export default function GalleryPage() {
             />
           </svg>
           <input
+            ref={searchRef}
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setShowSuggestions(true);
+              setActiveIdx(-1);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search distillations..."
-            className="w-full rounded-lg border border-white/10 bg-zinc-900/80 py-2 pl-9 pr-3 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
+            autoComplete="off"
+            className="w-full rounded-lg border border-white/10 bg-zinc-900/80 py-2 pl-9 pr-8 text-sm text-white placeholder-zinc-500 outline-none transition-all focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/20"
           />
           {search && (
             <button
-              onClick={() => setSearch("")}
+              onClick={() => { setSearch(""); setShowSuggestions(false); }}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-zinc-500 hover:text-white"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
               </svg>
             </button>
+          )}
+
+          {/* Suggestions dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div
+              ref={dropRef}
+              className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-white/10 bg-zinc-900/95 shadow-2xl shadow-black/40 backdrop-blur-xl"
+            >
+              {suggestions.map((item, i) => {
+                const q = search.toLowerCase();
+                const titleLower = item.title.toLowerCase();
+                const matchStart = titleLower.indexOf(q);
+                const meta = TYPE_META[item.type];
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      if (item.status === "complete") router.push(`/d/${item.slug}`);
+                    }}
+                    onMouseEnter={() => setActiveIdx(i)}
+                    className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                      i === activeIdx
+                        ? "bg-amber-500/10 text-white"
+                        : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs">
+                      {meta.icon}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm">
+                        {matchStart >= 0 ? (
+                          <>
+                            {item.title.slice(0, matchStart)}
+                            <span className="font-semibold text-amber-400">
+                              {item.title.slice(matchStart, matchStart + search.length)}
+                            </span>
+                            {item.title.slice(matchStart + search.length)}
+                          </>
+                        ) : (
+                          item.title
+                        )}
+                      </span>
+                      {item.subtitle && (
+                        <span className="ml-2 text-xs text-zinc-600">
+                          {item.subtitle}
+                        </span>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-[10px] text-zinc-600">
+                      {meta.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
