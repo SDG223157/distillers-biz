@@ -109,12 +109,12 @@ export default function DistillationPage({
   return (
     <div className="flex h-[calc(100vh-3.5rem)]">
       {/* Left: Distillation content (scrollable) */}
-      <div className="flex-1 overflow-y-auto px-6 py-10">
+      <div className="w-1/2 overflow-y-auto px-6 py-10 max-lg:w-full">
         <DistillView data={data} />
       </div>
 
-      {/* Right: Chat panel (fixed) */}
-      <div className="hidden w-[420px] shrink-0 border-l border-white/5 lg:block">
+      {/* Right: Chat panel (same width) */}
+      <div className="hidden w-1/2 border-l border-white/5 lg:block">
         <ChatPanel slug={slug} title={data.title} type={data.type} mode="split" />
       </div>
 
