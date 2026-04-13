@@ -5,6 +5,36 @@ function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
+function repairJson(text: string): string {
+  let s = text.trim();
+  if (!s.startsWith("{")) s = "{" + s;
+
+  let braces = 0;
+  let brackets = 0;
+  let inString = false;
+  let escape = false;
+
+  for (const ch of s) {
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{") braces++;
+    if (ch === "}") braces--;
+    if (ch === "[") brackets++;
+    if (ch === "]") brackets--;
+  }
+
+  if (inString) s += '"';
+
+  while (brackets > 0) { s += "]"; brackets--; }
+  while (braces > 0) { s += "}"; braces--; }
+
+  s = s.replace(/,\s*([}\]])/g, "$1");
+
+  return s;
+}
+
 const SYSTEM_PROMPT = `You are the Distiller — an expert knowledge synthesizer. Your job is to take raw research material about a topic and distill it into a structured, deeply insightful knowledge artifact.
 
 You extract the ESSENCE of things: the core truth, the origin story, the principles, the applications, the limitations, and the connections.
@@ -248,14 +278,20 @@ export async function distill(
       { role: "user", content: buildUserPrompt(topic, type, researchText) },
     ],
     temperature: 0.7,
-    max_completion_tokens: 8000,
+    max_completion_tokens: 16000,
     response_format: { type: "json_object" },
   });
 
   const text = response.choices[0]?.message?.content;
   if (!text) throw new Error("Empty response from LLM");
 
-  const content = JSON.parse(text) as DistillationContent;
+  let content: DistillationContent;
+  try {
+    content = JSON.parse(text) as DistillationContent;
+  } catch {
+    const repaired = repairJson(text);
+    content = JSON.parse(repaired) as DistillationContent;
+  }
 
   const subtitleResponse = await openai.chat.completions.create({
     model: "gpt-4o-mini",
