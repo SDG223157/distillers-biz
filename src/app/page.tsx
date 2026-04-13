@@ -521,7 +521,7 @@ export default function Home() {
         </div>
 
         <div className="mt-20 pb-8 text-center text-xs text-zinc-700">
-          Powered by SerpAPI research + GPT-4o distillation
+          &copy; {new Date().getFullYear()} Distillers. All rights reserved.
         </div>
       </div>
     </div>
