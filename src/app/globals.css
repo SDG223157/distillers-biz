@@ -25,6 +25,66 @@ body {
   @apply mb-3;
 }
 
+.chat-markdown p {
+  @apply mb-2 last:mb-0;
+}
+
+.chat-markdown strong {
+  @apply font-semibold text-white;
+}
+
+.chat-markdown em {
+  @apply italic text-zinc-300;
+}
+
+.chat-markdown ul {
+  @apply mb-2 ml-4 list-disc space-y-1;
+}
+
+.chat-markdown ol {
+  @apply mb-2 ml-4 list-decimal space-y-1;
+}
+
+.chat-markdown li {
+  @apply text-sm text-zinc-300;
+}
+
+.chat-markdown li::marker {
+  @apply text-zinc-500;
+}
+
+.chat-markdown code {
+  @apply rounded bg-zinc-700/50 px-1 py-0.5 text-xs font-mono text-amber-300;
+}
+
+.chat-markdown pre {
+  @apply mb-2 overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs;
+}
+
+.chat-markdown pre code {
+  @apply bg-transparent p-0;
+}
+
+.chat-markdown blockquote {
+  @apply mb-2 border-l-2 border-amber-500/40 pl-3 italic text-zinc-400;
+}
+
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 {
+  @apply mb-1 mt-3 font-semibold text-white;
+}
+
+.chat-markdown h1 { @apply text-base; }
+.chat-markdown h2 { @apply text-sm; }
+.chat-markdown h3 { @apply text-sm; }
+
+.chat-markdown a {
+  @apply text-amber-400 underline decoration-amber-500/30 hover:decoration-amber-500;
+}
+
+.chat-markdown hr {
+  @apply my-3 border-white/5;
+}
+
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import type { DistillationType } from "@/lib/types";
 
 interface Message {
@@ -166,9 +167,15 @@ export default function ChatPanel({
                   : "bg-zinc-800/80 text-zinc-300"
               }`}
             >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
-              {msg.role === "assistant" && streaming && i === messages.length - 1 && (
-                <span className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-amber-500/60" />
+              {msg.role === "assistant" ? (
+                <div className="chat-markdown">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  {streaming && i === messages.length - 1 && (
+                    <span className="ml-0.5 inline-block h-3 w-1.5 animate-pulse bg-amber-500/60" />
+                  )}
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap">{msg.content}</div>
               )}
             </div>
           </div>
