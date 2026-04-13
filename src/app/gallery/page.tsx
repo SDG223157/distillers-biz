@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import DistillCard from "@/components/DistillCard";
+import TypeBadge from "@/components/TypeBadge";
 import { TYPE_META, type DistillationType } from "@/lib/types";
 
 interface ListItem {
@@ -116,13 +116,13 @@ export default function GalleryPage() {
         )}
       </div>
 
-      {/* Grid */}
+      {/* List */}
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-48 rounded-xl border border-white/5 bg-zinc-900/30 shimmer"
+              className="h-16 rounded-lg border border-white/5 bg-zinc-900/30 shimmer"
             />
           ))}
         </div>
@@ -152,19 +152,69 @@ export default function GalleryPage() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((item) => (
-            <DistillCard
-              key={item.id}
-              slug={item.slug}
-              title={item.title}
-              type={item.type}
-              subtitle={item.subtitle}
-              essence={item.essence}
-              status={item.status as "complete" | "researching" | "distilling" | "failed"}
-              created_at={item.created_at}
-            />
-          ))}
+        <div className="overflow-hidden rounded-xl border border-white/5">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/5 bg-zinc-900/50 text-left text-xs font-medium uppercase tracking-wider text-zinc-500">
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3">Title</th>
+                <th className="hidden px-4 py-3 md:table-cell">Essence</th>
+                <th className="px-4 py-3 text-right">Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {filtered.map((item) => {
+                const isReady = item.status === "complete";
+                const meta = TYPE_META[item.type];
+                const date = new Date(item.created_at).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                });
+                return (
+                  <tr
+                    key={item.id}
+                    className={`transition-colors ${
+                      isReady
+                        ? "cursor-pointer hover:bg-amber-500/[0.03]"
+                        : "opacity-60"
+                    }`}
+                    onClick={() => {
+                      if (isReady) window.location.href = `/d/${item.slug}`;
+                    }}
+                  >
+                    <td className="px-4 py-3">
+                      <TypeBadge type={item.type} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-white">
+                          {item.title}
+                        </span>
+                        {item.subtitle && (
+                          <span className="text-xs text-zinc-500">
+                            {item.subtitle}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="hidden max-w-md px-4 py-3 md:table-cell">
+                      <span className="line-clamp-1 text-xs text-zinc-500">
+                        {item.essence || "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {item.status !== "complete" && (
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                        )}
+                        <span className="text-xs text-zinc-600">{date}</span>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
