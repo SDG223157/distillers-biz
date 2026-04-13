@@ -76,6 +76,28 @@ function buildUserPrompt(
 - Key thinkers and their specific contributions (key_figures)
 - Evolution over time (timeline)
 - Essential quotes (quotes — 3-5)`,
+
+    person: `This is a PERSON distillation — like distilling a cognitive operating system.
+Focus on HOW this person THINKS, not just WHAT they did.
+
+REQUIRED SECTIONS (populate ALL of these):
+- Who they are and why they matter in 2-3 sentences (essence)
+- Their origin story — formative experiences that shaped their thinking (origin_story)
+- 3-7 MENTAL MODELS — the core lenses they use to see the world (mental_models). Each needs:
+  name, one_line summary, 2+ evidence examples from different domains, application scenario, and limitation
+  A mental model must: appear across 2+ domains (cross-domain), predict their stance on new issues (generative), be unique to them (exclusive)
+- 5-10 DECISION HEURISTICS — their fast judgment rules as "if X, then Y" (decision_heuristics)
+- EXPRESSION DNA — how they talk (expression_dna): sentence style, vocabulary/forbidden words, rhythm, humor type, certainty level, catchphrases
+- VALUES & ANTI-PATTERNS (values_and_antipatterns): what they pursue (ranked), what they refuse to do, internal tensions/contradictions
+- INTELLECTUAL LINEAGE — who influenced them, who they influenced (intellectual_lineage as string)
+- Career/life timeline with thinking evolution (timeline)
+- Their best quotes that reveal thinking style (quotes — 4-6)
+- Key figures in their orbit (key_figures)
+- Connections to related thinkers/schools (connections)
+- What this distillation CANNOT capture — honesty boundary (limitations — 3-5)
+- Common misunderstandings about this person (misconceptions — 2-4)
+
+Also populate key_principles (framed as "core beliefs") and applications (framed as "domains of influence").`,
   };
 
   return `TOPIC: "${topic}"
@@ -86,7 +108,7 @@ ${typeInstructions[type]}
 RESEARCH MATERIAL:
 ${researchText}
 
-Return a JSON object with this exact structure:
+Return a JSON object with this structure (include ALL fields, add person-specific fields if type is person):
 {
   "essence": "1-3 sentence core distillation — the absolute essence",
   "origin_story": "2-4 paragraph narrative of how this came to be",
@@ -112,7 +134,27 @@ Return a JSON object with this exact structure:
   ],
   "quotes": [
     { "text": "The quote", "attribution": "Who said it" }
-  ]
+  ]${type === "person" ? `,
+  "mental_models": [
+    { "name": "Model Name", "one_line": "Brief description", "evidence": ["Example from domain A", "Example from domain B"], "application": "When to use this lens", "limitation": "When it fails" }
+  ],
+  "decision_heuristics": [
+    { "rule": "Rule name", "description": "If X, then Y — concrete rule", "example": "Real case where they applied this" }
+  ],
+  "expression_dna": {
+    "sentence_style": "Short/long, question ratio, analogy density",
+    "vocabulary": "High-frequency words, proprietary terms, forbidden words",
+    "rhythm": "Conclusion-first or build-up, transition style",
+    "humor": "Sarcasm/self-deprecation/absurdist/deadpan/none",
+    "certainty": "How they express confidence or doubt",
+    "catchphrases": ["Phrase 1", "Phrase 2"]
+  },
+  "values_and_antipatterns": {
+    "values": ["Value 1 (most important)", "Value 2"],
+    "antipatterns": ["What they refuse to do 1"],
+    "tensions": ["Internal contradiction 1"]
+  },
+  "intellectual_lineage": "Who influenced them → Them → Who they influenced"` : ""}
 }
 
 Be thorough, specific, and insightful. Use the research material but synthesize — don't just summarize. Find the non-obvious connections. Make every section count.`;
@@ -158,13 +200,57 @@ export async function distill(
   return { content, subtitle };
 }
 
+const KNOWN_PERSONS = [
+  "elon musk", "steve jobs", "warren buffett", "charlie munger",
+  "jeff bezos", "bill gates", "mark zuckerberg", "sam altman",
+  "jensen huang", "satya nadella", "tim cook", "larry page",
+  "sergey brin", "peter thiel", "reid hoffman", "paul graham",
+  "naval ravikant", "ray dalio", "george soros", "carl icahn",
+  "nassim taleb", "richard feynman", "albert einstein",
+  "nikola tesla", "isaac newton", "charles darwin",
+  "marie curie", "ada lovelace", "alan turing",
+  "aristotle", "plato", "socrates", "confucius", "sun tzu",
+  "napoleon", "alexander the great", "julius caesar",
+  "gandhi", "martin luther king", "nelson mandela",
+  "leonardo da vinci", "michelangelo", "shakespeare",
+  "beethoven", "mozart", "bach",
+  "marx", "keynes", "adam smith", "hayek", "friedman",
+  "chomsky", "foucault", "nietzsche", "kant", "hegel",
+  "deng xiaoping", "mao zedong", "xi jinping",
+  "jack ma", "pony ma", "zhang yiming", "ren zhengfei",
+  "andy grove", "bob iger", "reed hastings", "travis kalanick",
+  "brian chesky", "patrick collison", "tobi lutke",
+  "andrej karpathy", "ilya sutskever", "demis hassabis",
+  "yann lecun", "geoffrey hinton", "andrew ng",
+  "mrbeast", "joe rogan", "lex fridman",
+  "oprah", "obama", "trump", "biden",
+];
+
 export function classifyType(topic: string): DistillationType {
-  const lower = topic.toLowerCase();
+  const lower = topic.toLowerCase().trim();
+
+  if (KNOWN_PERSONS.some((p) => lower.includes(p))) return "person";
+
+  const words = lower.split(/\s+/);
+  const isProperName =
+    words.length >= 2 &&
+    words.length <= 4 &&
+    words.every((w) => /^[a-z]/.test(w)) &&
+    !lower.includes(" of ") &&
+    !lower.includes(" the ") &&
+    !lower.includes(" and ");
+  const hasNoConceptWords = ![
+    "theory", "effect", "principle", "law", "model", "formula",
+    "equation", "theorem", "paradox", "hypothesis", "framework",
+    "method", "system", "cycle", "revolution", "war", "crisis",
+    "age", "era", "empire", "history", "philosophy", "ism",
+  ].some((w) => lower.includes(w));
+  if (isProperName && hasNoConceptWords && words.length >= 2) return "person";
 
   const formulaSignals = [
     "formula", "equation", "theorem", "law of", "principle of",
     "algorithm", "=", "²", "σ", "∑", "∫", "π",
-    "black-scholes", "pythagor", "euler", "bayes", "newton",
+    "black-scholes", "pythagor", "euler's", "bayes",
     "e=mc", "f=ma", "pv=nrt",
   ];
   if (formulaSignals.some((s) => lower.includes(s))) return "formula";

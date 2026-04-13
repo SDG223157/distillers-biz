@@ -49,6 +49,16 @@ const SEARCH_TEMPLATES: Record<DistillationType, (topic: string) => string[]> = 
     `${t} modern relevance today`,
     `${t} history origin evolution`,
   ],
+  person: (t) => [
+    `${t} books writings core ideas philosophy`,
+    `${t} interview podcast quotes thinking style`,
+    `${t} decision making style principles`,
+    `${t} criticism controversy mistakes failures`,
+    `${t} biography career timeline major decisions`,
+    `${t} mental models frameworks how they think`,
+    `${t} leadership style management approach`,
+    `${t} influences mentors intellectual heroes`,
+  ],
 };
 
 async function serpSearch(query: string): Promise<SerpResult[]> {

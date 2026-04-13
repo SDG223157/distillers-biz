@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, use } from "react";
 import DistillView from "@/components/DistillView";
+import ChatPanel from "@/components/ChatPanel";
 import type { Distillation } from "@/lib/types";
 
 export default function DistillationPage({
@@ -108,6 +109,7 @@ export default function DistillationPage({
   return (
     <div className="px-6 py-10">
       <DistillView data={data} />
+      <ChatPanel slug={slug} title={data.title} type={data.type} />
     </div>
   );
 }

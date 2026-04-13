@@ -6,6 +6,7 @@ const colorMap: Record<string, string> = {
   red: "bg-red-500/15 text-red-400 border-red-500/20",
   emerald: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
   purple: "bg-purple-500/15 text-purple-400 border-purple-500/20",
+  cyan: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
 };
 
 export default function TypeBadge({

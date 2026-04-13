@@ -45,6 +45,20 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Empiricism", type: "philosophy" },
   { text: "Absurdism", type: "philosophy" },
   { text: "Effective Altruism", type: "philosophy" },
+  { text: "Elon Musk", type: "person" },
+  { text: "Steve Jobs", type: "person" },
+  { text: "Charlie Munger", type: "person" },
+  { text: "Warren Buffett", type: "person" },
+  { text: "Richard Feynman", type: "person" },
+  { text: "Nassim Taleb", type: "person" },
+  { text: "Paul Graham", type: "person" },
+  { text: "Naval Ravikant", type: "person" },
+  { text: "Ray Dalio", type: "person" },
+  { text: "Jeff Bezos", type: "person" },
+  { text: "Sam Altman", type: "person" },
+  { text: "Peter Thiel", type: "person" },
+  { text: "Andrej Karpathy", type: "person" },
+  { text: "Jensen Huang", type: "person" },
 ];
 
 const EXAMPLES = SUGGESTIONS.slice(0, 5);

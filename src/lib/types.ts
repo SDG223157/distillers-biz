@@ -3,7 +3,8 @@ export type DistillationType =
   | "formula"
   | "event"
   | "history"
-  | "philosophy";
+  | "philosophy"
+  | "person";
 
 export type DistillationStatus =
   | "researching"
@@ -39,6 +40,40 @@ export interface DistillationContent {
   key_figures: Figure[];
   timeline: TimelineEntry[];
   quotes: Quote[];
+  mental_models?: MentalModel[];
+  decision_heuristics?: DecisionHeuristic[];
+  expression_dna?: ExpressionDNA;
+  values_and_antipatterns?: ValuesAntipatterns;
+  intellectual_lineage?: string;
+}
+
+export interface MentalModel {
+  name: string;
+  one_line: string;
+  evidence: string[];
+  application: string;
+  limitation: string;
+}
+
+export interface DecisionHeuristic {
+  rule: string;
+  description: string;
+  example: string;
+}
+
+export interface ExpressionDNA {
+  sentence_style: string;
+  vocabulary: string;
+  rhythm: string;
+  humor: string;
+  certainty: string;
+  catchphrases: string[];
+}
+
+export interface ValuesAntipatterns {
+  values: string[];
+  antipatterns: string[];
+  tensions: string[];
 }
 
 export interface ContentSection {
@@ -122,5 +157,11 @@ export const TYPE_META: Record<
     icon: "🏛️",
     color: "purple",
     description: "Schools of thought, doctrines, worldviews",
+  },
+  person: {
+    label: "Person",
+    icon: "🧠",
+    color: "cyan",
+    description: "Thinkers, leaders, innovators — distill how they think",
   },
 };
