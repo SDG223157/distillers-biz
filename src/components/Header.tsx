@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { auth, signOut } from "@/auth";
 
-export default function Header() {
-  const pathname = usePathname();
+export default async function Header() {
+  const session = await auth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-zinc-950/80 backdrop-blur-xl">
@@ -18,14 +16,37 @@ export default function Header() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1">
-          <NavLink href="/" active={pathname === "/"}>
-            Home
-          </NavLink>
-          <NavLink href="/gallery" active={pathname === "/gallery"}>
-            Gallery
-          </NavLink>
-        </nav>
+        <div className="flex items-center gap-3">
+          <nav className="flex items-center gap-1">
+            <NavLink href="/">Home</NavLink>
+            <NavLink href="/gallery">Gallery</NavLink>
+          </nav>
+
+          {session?.user && (
+            <div className="flex items-center gap-2 border-l border-white/5 pl-3">
+              {session.user.image && (
+                <img
+                  src={session.user.image}
+                  alt=""
+                  className="h-7 w-7 rounded-full"
+                />
+              )}
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut({ redirectTo: "/login" });
+                }}
+              >
+                <button
+                  type="submit"
+                  className="text-xs text-zinc-500 hover:text-white transition-colors"
+                >
+                  Sign out
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
@@ -33,21 +54,15 @@ export default function Header() {
 
 function NavLink({
   href,
-  active,
   children,
 }: {
   href: string;
-  active: boolean;
   children: React.ReactNode;
 }) {
   return (
     <Link
       href={href}
-      className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-        active
-          ? "bg-white/10 text-white"
-          : "text-zinc-400 hover:bg-white/5 hover:text-white"
-      }`}
+      className="rounded-md px-3 py-1.5 text-sm text-zinc-400 transition-colors hover:bg-white/5 hover:text-white"
     >
       {children}
     </Link>
