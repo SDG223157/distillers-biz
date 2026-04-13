@@ -7,6 +7,11 @@ const colorMap: Record<string, string> = {
   emerald: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
   purple: "bg-purple-500/15 text-purple-400 border-purple-500/20",
   cyan: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
+  orange: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  sky: "bg-sky-500/15 text-sky-400 border-sky-500/20",
+  teal: "bg-teal-500/15 text-teal-400 border-teal-500/20",
+  lime: "bg-lime-500/15 text-lime-400 border-lime-500/20",
+  rose: "bg-rose-500/15 text-rose-400 border-rose-500/20",
 };
 
 export default function TypeBadge({

@@ -4,7 +4,12 @@ export type DistillationType =
   | "event"
   | "history"
   | "philosophy"
-  | "person";
+  | "person"
+  | "book"
+  | "company"
+  | "technology"
+  | "skill"
+  | "debate";
 
 export type DistillationStatus =
   | "researching"
@@ -163,5 +168,35 @@ export const TYPE_META: Record<
     icon: "🧠",
     color: "cyan",
     description: "Thinkers, leaders, innovators — distill how they think",
+  },
+  book: {
+    label: "Book",
+    icon: "📖",
+    color: "orange",
+    description: "Core thesis, key arguments, actionable takeaways",
+  },
+  company: {
+    label: "Company",
+    icon: "🏢",
+    color: "sky",
+    description: "Business model, moat, culture, strategy",
+  },
+  technology: {
+    label: "Technology",
+    icon: "⚙️",
+    color: "teal",
+    description: "How it works, evolution, applications, future",
+  },
+  skill: {
+    label: "Skill",
+    icon: "🎯",
+    color: "lime",
+    description: "How to learn it, techniques, mastery path",
+  },
+  debate: {
+    label: "Debate",
+    icon: "⚖️",
+    color: "rose",
+    description: "Both sides, strongest arguments, evidence, verdict",
   },
 };

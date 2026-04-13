@@ -77,6 +77,67 @@ function buildUserPrompt(
 - Evolution over time (timeline)
 - Essential quotes (quotes — 3-5)`,
 
+    book: `This is a BOOK distillation. Focus on:
+- The core thesis/argument in 2-3 sentences (essence)
+- Why the author wrote it — context and motivation (origin_story)
+- Key ideas chapter by chapter (key_principles — frame as "key ideas", 5-8)
+- Practical takeaways — what the reader should DO differently (applications — 4-6)
+- Weaknesses, blind spots, what critics say (limitations — 3-5)
+- What people misunderstand about this book (misconceptions — 2-3)
+- Related books and intellectual connections (connections — 4-6)
+- The author and their credibility (key_figures)
+- Publication and impact timeline (timeline)
+- Best passages and quotes (quotes — 4-6)`,
+
+    company: `This is a COMPANY distillation. Focus on:
+- What this company does and why it matters, in 2-3 sentences (essence)
+- The founding story and early struggles (origin_story)
+- Business model mechanics — how it makes money (key_principles — frame as "business model pillars", 4-6)
+- Competitive advantages and moats (applications — frame as "strategic advantages", 3-5)
+- Biggest risks, threats, and weaknesses (limitations — 4-6)
+- Common misconceptions about this company (misconceptions — 2-4)
+- Key competitors and industry connections (connections)
+- Leadership team and key figures (key_figures)
+- Company timeline with milestones (timeline)
+- Defining statements from leadership (quotes — 3-5)`,
+
+    technology: `This is a TECHNOLOGY distillation. Focus on:
+- What this technology does and why it matters (essence)
+- How it was invented and evolved (origin_story)
+- How it works — key components explained simply (key_principles — 4-6)
+- Real-world applications and use cases (applications — 4-6)
+- Current limitations and unsolved problems (limitations — 4-6)
+- Common misconceptions and hype vs reality (misconceptions — 3-4)
+- Related technologies and alternatives (connections)
+- Key inventors, contributors, companies (key_figures)
+- Evolution timeline (timeline)
+- Defining quotes about this technology (quotes — 2-4)`,
+
+    skill: `This is a SKILL distillation. Focus on:
+- What this skill is and why it's valuable (essence)
+- Brief history of how this skill developed (origin_story)
+- Core techniques and fundamentals a learner must master (key_principles — frame as "core techniques", 5-8)
+- Where and how this skill applies professionally and personally (applications — 4-6)
+- Common plateaus, mistakes, and failure modes (limitations — frame as "common pitfalls", 4-6)
+- Myths about learning this skill (misconceptions — 3-4)
+- Related skills and learning paths (connections)
+- Famous masters and practitioners to study (key_figures)
+- Learning progression timeline from beginner to expert (timeline)
+- Wisdom from masters about this skill (quotes — 3-5)`,
+
+    debate: `This is a DEBATE distillation. Distill BOTH sides fairly. Focus on:
+- What the debate is about and why it matters (essence)
+- How this debate originated and evolved (origin_story)
+- The FOR side — 3-4 strongest arguments with evidence (key_principles — frame as "arguments FOR")
+- The AGAINST side — 3-4 strongest arguments with evidence (applications — frame as "arguments AGAINST")
+- What both sides get wrong or oversimplify (limitations — frame as "blind spots on both sides")
+- Common strawman arguments and misconceptions (misconceptions — 3-4)
+- Related debates and connected issues (connections)
+- Key voices on each side (key_figures — include both sides, label their position)
+- How the debate has evolved over time (timeline)
+- Defining quotes from both sides (quotes — 4-6, balanced)
+IMPORTANT: Be genuinely balanced. Present each side at its strongest, not as a caricature.`,
+
     person: `This is a PERSON distillation — like distilling a cognitive operating system.
 Focus on HOW this person THINKS, not just WHAT they did.
 
@@ -244,8 +305,61 @@ export function classifyType(topic: string): DistillationType {
     "equation", "theorem", "paradox", "hypothesis", "framework",
     "method", "system", "cycle", "revolution", "war", "crisis",
     "age", "era", "empire", "history", "philosophy", "ism",
+    "book", "company", "inc", "corp", "technology", "skill",
+    "how to", "learn", "vs", "versus", "should",
   ].some((w) => lower.includes(w));
   if (isProperName && hasNoConceptWords && words.length >= 2) return "person";
+
+  const bookSignals = [
+    "book", "by ", "novel", "autobiography", "memoir",
+    "manifesto", "guide to", "principles by",
+    "thinking fast", "sapiens", "atomic habits", "zero to one",
+    "poor charlie", "intelligent investor", "art of war",
+    "wealth of nations", "black swan", "antifragile",
+  ];
+  if (bookSignals.some((s) => lower.includes(s))) return "book";
+
+  const companySignals = [
+    "company", "inc", "corp", "ltd", "llc", "group",
+    "apple", "google", "microsoft", "amazon", "meta",
+    "tesla", "nvidia", "netflix", "spotify", "uber",
+    "airbnb", "stripe", "shopify", "alibaba", "tencent",
+    "bytedance", "samsung", "toyota", "berkshire",
+    "goldman sachs", "jpmorgan", "blackrock",
+  ];
+  if (companySignals.some((s) => lower.includes(s))) return "company";
+
+  const techSignals = [
+    "technology", "blockchain", "quantum computing",
+    "machine learning", "deep learning", "neural network",
+    "crispr", "gene editing", "nuclear fusion",
+    "5g", "6g", "api", "protocol", "database",
+    "encryption", "compiler", "operating system",
+    "cloud computing", "edge computing", "iot",
+    "augmented reality", "virtual reality",
+    "self-driving", "autonomous",
+  ];
+  if (techSignals.some((s) => lower.includes(s))) return "technology";
+
+  const skillSignals = [
+    "how to", "learn", "skill", "mastery", "practice",
+    "technique", "craft of", "art of writing",
+    "public speaking", "negotiation", "programming",
+    "cooking", "investing", "meditation",
+    "speed reading", "critical thinking",
+    "problem solving", "leadership skills",
+  ];
+  if (skillSignals.some((s) => lower.includes(s))) return "skill";
+
+  const debateSignals = [
+    " vs ", "versus", "should we", "is it better",
+    "pros and cons", "for or against", "debate",
+    "capitalism vs", "nature vs nurture",
+    "free will", "gun control", "universal basic income",
+    "nuclear energy", "death penalty", "privacy vs security",
+    "ai regulation", "crypto regulation",
+  ];
+  if (debateSignals.some((s) => lower.includes(s))) return "debate";
 
   const formulaSignals = [
     "formula", "equation", "theorem", "law of", "principle of",

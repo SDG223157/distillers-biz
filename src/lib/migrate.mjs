@@ -16,7 +16,7 @@ async function migrate() {
       id SERIAL PRIMARY KEY,
       slug TEXT UNIQUE NOT NULL,
       title TEXT NOT NULL,
-      type TEXT NOT NULL CHECK (type IN ('concept','formula','event','history','philosophy','person')),
+      type TEXT NOT NULL CHECK (type IN ('concept','formula','event','history','philosophy','person','book','company','technology','skill','debate')),
       subtitle TEXT,
       status TEXT NOT NULL DEFAULT 'researching' CHECK (status IN ('researching','distilling','complete','failed')),
       essence TEXT,
