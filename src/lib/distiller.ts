@@ -248,7 +248,7 @@ export async function distill(
       { role: "user", content: buildUserPrompt(topic, type, researchText) },
     ],
     temperature: 0.7,
-    max_tokens: 8000,
+    max_completion_tokens: 8000,
     response_format: { type: "json_object" },
   });
 
