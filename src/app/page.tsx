@@ -224,6 +224,19 @@ const SUGGESTIONS: { text: string; type: DistillationType }[] = [
   { text: "Free Will vs Determinism", type: "debate" },
   { text: "Privacy vs Security", type: "debate" },
   { text: "Active vs Passive Investing", type: "debate" },
+  // Questions
+  { text: "Why do we dream?", type: "question" },
+  { text: "What is consciousness?", type: "question" },
+  { text: "What is the meaning of life?", type: "question" },
+  { text: "Why does time move forward?", type: "question" },
+  { text: "Are we alone in the universe?", type: "question" },
+  { text: "What is intelligence?", type: "question" },
+  { text: "Why do we age?", type: "question" },
+  { text: "What is money really?", type: "question" },
+  { text: "How does memory work?", type: "question" },
+  { text: "Why is there something rather than nothing?", type: "question" },
+  { text: "Can machines be creative?", type: "question" },
+  { text: "What makes a good life?", type: "question" },
 ];
 
 const EXAMPLES = SUGGESTIONS.slice(0, 5);

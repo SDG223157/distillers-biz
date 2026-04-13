@@ -146,6 +146,18 @@ const SEARCH_TEMPLATES: Record<DistillationType, (topic: string) => string[]> = 
     `${t} real world examples consequences`,
     `${t} current status consensus 2024 2025`,
   ],
+  question: (t) => [
+    `${t} best answer explained`,
+    `${t} scientific research evidence`,
+    `${t} different perspectives viewpoints`,
+    `${t} expert opinions analysis`,
+    `${t} common answers wrong misconceptions`,
+    `${t} philosophical perspective`,
+    `${t} practical implications real world`,
+    `${t} history how thinking evolved`,
+    `${t} latest research findings 2024 2025`,
+    `${t} simple explanation for beginners`,
+  ],
 };
 
 async function serpSearch(query: string): Promise<SerpResult[]> {

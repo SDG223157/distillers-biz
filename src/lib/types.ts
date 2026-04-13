@@ -9,7 +9,8 @@ export type DistillationType =
   | "company"
   | "technology"
   | "skill"
-  | "debate";
+  | "debate"
+  | "question";
 
 export type DistillationStatus =
   | "researching"
@@ -198,5 +199,11 @@ export const TYPE_META: Record<
     icon: "⚖️",
     color: "rose",
     description: "Both sides, strongest arguments, evidence, verdict",
+  },
+  question: {
+    label: "Question",
+    icon: "❓",
+    color: "violet",
+    description: "Deep answers to big questions with multiple perspectives",
   },
 };

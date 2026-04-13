@@ -77,6 +77,19 @@ function buildUserPrompt(
 - Evolution over time (timeline)
 - Essential quotes (quotes — 3-5)`,
 
+    question: `This is a QUESTION distillation. The user asked a big question — give a deep, multi-perspective answer. Focus on:
+- The best current answer distilled into 2-3 clear sentences (essence)
+- How humanity has grappled with this question over time (origin_story)
+- Multiple perspectives/schools of thought on this answer (key_principles — frame as "perspectives", 3-6)
+- Practical implications — how the answer affects decisions and life (applications — 3-5)
+- What we still don't know — honest gaps and uncertainties (limitations — frame as "open questions", 3-5)
+- Common wrong answers and why they persist (misconceptions — 3-4)
+- Related questions this leads to (connections — 4-6)
+- Key thinkers who shaped the answer (key_figures)
+- How the answer evolved over time (timeline)
+- Memorable quotes about this question (quotes — 3-5)
+Don't give a single "right answer" — show the landscape of thinking. Be honest about uncertainty.`,
+
     book: `This is a BOOK distillation. Focus on:
 - The core thesis/argument in 2-3 sentences (essence)
 - Why the author wrote it — context and motivation (origin_story)
@@ -350,6 +363,21 @@ export function classifyType(topic: string): DistillationType {
     "problem solving", "leadership skills",
   ];
   if (skillSignals.some((s) => lower.includes(s))) return "skill";
+
+  const questionSignals = [
+    "why ", "why do", "why is", "why are", "why does",
+    "what is the meaning", "what is the purpose",
+    "how does", "how do we", "how can we",
+    "is it possible", "can we", "will we ever",
+    "what happens when", "what would happen if",
+    "what is consciousness", "what is intelligence",
+    "what is love", "what is time", "what is life",
+    "what is money", "what is truth", "what is art",
+    "where do we come from", "are we alone",
+    "what is the best way to",
+    "?",
+  ];
+  if (questionSignals.some((s) => lower.includes(s))) return "question";
 
   const debateSignals = [
     " vs ", "versus", "should we", "is it better",
