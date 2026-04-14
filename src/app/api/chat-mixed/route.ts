@@ -85,20 +85,24 @@ async function needsLiveData(
       model: "gpt-4o-mini",
       messages: [
         {
+          role: "system",
+          content: `You decide if a question needs current real-time data (stock prices, market valuations, latest news, earnings, today's events). Reply ONLY with:
+- The word NO (if no live data needed)
+- OR a Google search query (if live data needed)
+Never include "YES:", explanations, or quotes. Just the raw search query or NO.`,
+        },
+        {
           role: "user",
-          content: `Does this question need real-time/current data to answer well? (stock prices, valuations, latest news, current events, recent earnings, today's market)
-
-Question: "${question}"
-
-If YES: reply with a concise Google search query to find the data (just the query, nothing else).
-If NO: reply with exactly "NO".`,
+          content: question,
         },
       ],
       max_tokens: 50,
       temperature: 0,
     });
-    const answer = res.choices[0]?.message?.content?.trim() || "NO";
-    return answer === "NO" ? null : answer;
+    let answer = (res.choices[0]?.message?.content || "").trim();
+    answer = answer.replace(/^(YES|yes)[:\s]*/i, "").replace(/^["']|["']$/g, "").trim();
+    if (!answer || answer.toUpperCase() === "NO") return null;
+    return answer;
   } catch {
     return null;
   }

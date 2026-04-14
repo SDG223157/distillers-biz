@@ -158,15 +158,17 @@ export async function POST(req: NextRequest) {
     try {
       const classifyRes = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        messages: [{
-          role: "user",
-          content: `Does this need real-time data? (prices, valuations, news, current events)\nQuestion: "${userQuestion}"\nIf YES: reply with a Google search query. If NO: reply "NO".`,
-        }],
+        messages: [
+          { role: "system", content: `You decide if a question needs current real-time data (stock prices, market valuations, latest news, earnings, today's events). Reply ONLY with:\n- The word NO (if no live data needed)\n- OR a Google search query (if live data needed)\nNever include "YES:", explanations, or quotes. Just the raw search query or NO.` },
+          { role: "user", content: userQuestion },
+        ],
         max_tokens: 50,
         temperature: 0,
       });
-      const searchQuery = classifyRes.choices[0]?.message?.content?.trim();
-      if (searchQuery && searchQuery !== "NO") {
+      let searchQuery = (classifyRes.choices[0]?.message?.content || "").trim();
+      searchQuery = searchQuery.replace(/^(YES|yes)[:\s]*/i, "").replace(/^["']|["']$/g, "").trim();
+      if (searchQuery.toUpperCase() === "NO") searchQuery = "";
+      if (searchQuery) {
         const [serpSnippets, tavilySnippets] = await Promise.all([
           (async () => {
             const serpKey = process.env.SERPAPI_API_KEY;
