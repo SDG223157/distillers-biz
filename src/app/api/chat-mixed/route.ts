@@ -4,44 +4,76 @@ import { neon } from "@neondatabase/serverless";
 import type { DistillationContent } from "@/lib/types";
 
 const SERPAPI_BASE = "https://serpapi.com/search.json";
+const TAVILY_BASE = "https://api.tavily.com/search";
 
-async function liveSearch(query: string): Promise<string> {
+async function serpLiveSearch(query: string): Promise<string[]> {
   const apiKey = process.env.SERPAPI_API_KEY;
-  if (!apiKey) return "";
+  if (!apiKey) return [];
 
   try {
     const params = new URLSearchParams({
-      q: query,
-      api_key: apiKey,
-      engine: "google",
-      num: "5",
-      hl: "en",
+      q: query, api_key: apiKey, engine: "google", num: "5", hl: "en",
     });
-    const res = await fetch(`${SERPAPI_BASE}?${params}`, {
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!res.ok) return "";
+    const res = await fetch(`${SERPAPI_BASE}?${params}`, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return [];
     const data = await res.json();
-
     const snippets: string[] = [];
 
+    if (data.answer_box?.answer) snippets.push(`[Answer] ${data.answer_box.answer}`);
+    if (data.answer_box?.snippet) snippets.push(`[Answer] ${data.answer_box.snippet}`);
     if (data.knowledge_graph?.description) {
       snippets.push(`[Knowledge Graph] ${data.knowledge_graph.title || ""}: ${data.knowledge_graph.description}`);
-    }
-    if (data.answer_box?.answer) {
-      snippets.push(`[Answer Box] ${data.answer_box.answer}`);
-    }
-    if (data.answer_box?.snippet) {
-      snippets.push(`[Answer Box] ${data.answer_box.snippet}`);
     }
     for (const r of (data.organic_results || []).slice(0, 5)) {
       if (r.snippet) snippets.push(`[${r.title}] ${r.snippet}`);
     }
-
-    return snippets.join("\n");
+    return snippets;
   } catch {
-    return "";
+    return [];
   }
+}
+
+async function tavilyLiveSearch(query: string): Promise<string[]> {
+  const apiKey = process.env.TAVILY_API_KEY;
+  if (!apiKey) return [];
+
+  try {
+    const res = await fetch(TAVILY_BASE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey, query, search_depth: "basic", max_results: 5, include_answer: true,
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const snippets: string[] = [];
+
+    if (data.answer) snippets.push(`[Tavily Summary] ${data.answer}`);
+    for (const r of (data.results || []).slice(0, 5)) {
+      if (r.content) snippets.push(`[${r.title || "Tavily"}] ${r.content.slice(0, 300)}`);
+    }
+    return snippets;
+  } catch {
+    return [];
+  }
+}
+
+async function liveSearch(query: string): Promise<string> {
+  const [serpResults, tavilyResults] = await Promise.all([
+    serpLiveSearch(query),
+    tavilyLiveSearch(query),
+  ]);
+
+  const seen = new Set<string>();
+  const all: string[] = [];
+  for (const s of [...serpResults, ...tavilyResults]) {
+    const key = s.slice(0, 80);
+    if (!seen.has(key)) { seen.add(key); all.push(s); }
+  }
+
+  return all.join("\n");
 }
 
 async function needsLiveData(

@@ -167,23 +167,46 @@ export async function POST(req: NextRequest) {
       });
       const searchQuery = classifyRes.choices[0]?.message?.content?.trim();
       if (searchQuery && searchQuery !== "NO") {
-        const serpKey = process.env.SERPAPI_API_KEY;
-        if (serpKey) {
-          const params = new URLSearchParams({ q: searchQuery, api_key: serpKey, engine: "google", num: "5", hl: "en" });
-          const serpRes = await fetch(`https://serpapi.com/search.json?${params}`, { signal: AbortSignal.timeout(10000) });
-          if (serpRes.ok) {
-            const serpData = await serpRes.json();
-            const snippets: string[] = [];
-            if (serpData.answer_box?.answer) snippets.push(`[Answer] ${serpData.answer_box.answer}`);
-            if (serpData.answer_box?.snippet) snippets.push(`[Answer] ${serpData.answer_box.snippet}`);
-            if (serpData.knowledge_graph?.description) snippets.push(`[KG] ${serpData.knowledge_graph.description}`);
-            for (const r of (serpData.organic_results || []).slice(0, 5)) {
-              if (r.snippet) snippets.push(`[${r.title}] ${r.snippet}`);
-            }
-            if (snippets.length > 0) {
-              systemPrompt += `\n\n=== LIVE DATA (searched: "${searchQuery}") ===\n${snippets.join("\n")}\n=== END ===\nUse this live data with current facts. Cite specific numbers.`;
-            }
-          }
+        const [serpSnippets, tavilySnippets] = await Promise.all([
+          (async () => {
+            const serpKey = process.env.SERPAPI_API_KEY;
+            if (!serpKey) return [];
+            try {
+              const params = new URLSearchParams({ q: searchQuery, api_key: serpKey, engine: "google", num: "5", hl: "en" });
+              const res = await fetch(`https://serpapi.com/search.json?${params}`, { signal: AbortSignal.timeout(10000) });
+              if (!res.ok) return [];
+              const data = await res.json();
+              const s: string[] = [];
+              if (data.answer_box?.answer) s.push(`[Answer] ${data.answer_box.answer}`);
+              if (data.answer_box?.snippet) s.push(`[Answer] ${data.answer_box.snippet}`);
+              if (data.knowledge_graph?.description) s.push(`[KG] ${data.knowledge_graph.description}`);
+              for (const r of (data.organic_results || []).slice(0, 5)) { if (r.snippet) s.push(`[${r.title}] ${r.snippet}`); }
+              return s;
+            } catch { return []; }
+          })(),
+          (async () => {
+            const tavilyKey = process.env.TAVILY_API_KEY;
+            if (!tavilyKey) return [];
+            try {
+              const res = await fetch("https://api.tavily.com/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ api_key: tavilyKey, query: searchQuery, search_depth: "basic", max_results: 5, include_answer: true }),
+                signal: AbortSignal.timeout(10000),
+              });
+              if (!res.ok) return [];
+              const data = await res.json();
+              const s: string[] = [];
+              if (data.answer) s.push(`[Tavily] ${data.answer}`);
+              for (const r of (data.results || []).slice(0, 5)) { if (r.content) s.push(`[${r.title || "Tavily"}] ${r.content.slice(0, 300)}`); }
+              return s;
+            } catch { return []; }
+          })(),
+        ]);
+
+        const allSnippets = [...serpSnippets, ...tavilySnippets];
+        if (allSnippets.length > 0) {
+          systemPrompt += `\n\n=== LIVE DATA (searched: "${searchQuery}") ===\n${allSnippets.join("\n")}\n=== END ===\nUse this live data with current facts. Cite specific numbers.`;
         }
       }
     } catch { /* live search is best-effort */ }
