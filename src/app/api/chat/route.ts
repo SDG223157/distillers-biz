@@ -150,9 +150,43 @@ export async function POST(req: NextRequest) {
     }
 
     const distillation = rows[0] as unknown as Distillation;
-    const systemPrompt = buildSystemPrompt(distillation);
+    let systemPrompt = buildSystemPrompt(distillation);
 
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const userQuestion = lastUserMsg?.content || "";
+    try {
+      const classifyRes = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{
+          role: "user",
+          content: `Does this need real-time data? (prices, valuations, news, current events)\nQuestion: "${userQuestion}"\nIf YES: reply with a Google search query. If NO: reply "NO".`,
+        }],
+        max_tokens: 50,
+        temperature: 0,
+      });
+      const searchQuery = classifyRes.choices[0]?.message?.content?.trim();
+      if (searchQuery && searchQuery !== "NO") {
+        const serpKey = process.env.SERPAPI_API_KEY;
+        if (serpKey) {
+          const params = new URLSearchParams({ q: searchQuery, api_key: serpKey, engine: "google", num: "5", hl: "en" });
+          const serpRes = await fetch(`https://serpapi.com/search.json?${params}`, { signal: AbortSignal.timeout(10000) });
+          if (serpRes.ok) {
+            const serpData = await serpRes.json();
+            const snippets: string[] = [];
+            if (serpData.answer_box?.answer) snippets.push(`[Answer] ${serpData.answer_box.answer}`);
+            if (serpData.answer_box?.snippet) snippets.push(`[Answer] ${serpData.answer_box.snippet}`);
+            if (serpData.knowledge_graph?.description) snippets.push(`[KG] ${serpData.knowledge_graph.description}`);
+            for (const r of (serpData.organic_results || []).slice(0, 5)) {
+              if (r.snippet) snippets.push(`[${r.title}] ${r.snippet}`);
+            }
+            if (snippets.length > 0) {
+              systemPrompt += `\n\n=== LIVE DATA (searched: "${searchQuery}") ===\n${snippets.join("\n")}\n=== END ===\nUse this live data with current facts. Cite specific numbers.`;
+            }
+          }
+        }
+      }
+    } catch { /* live search is best-effort */ }
 
     const stream = await openai.chat.completions.create({
       model: "gpt-4o",
